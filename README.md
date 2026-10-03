@@ -1,4 +1,8 @@
-<a href="https://www.youtube.com/@KatsuThePrinter"><img src="media/branding/avatar.png" alt="Katsu holding a magic wand beneath fireworks" width="112" align="right"></a>
+<p align="center">
+  <a href="https://www.youtube.com/@KatsuThePrinter">
+    <img src="media/branding/avatar-round.svg" alt="Katsu holding a magic wand beneath fireworks" width="160" height="160">
+  </a>
+</p>
 
 # Katsu Studio
 

@@ -9,6 +9,7 @@
 | Artwork | File | Dimensions |
 | --- | --- | --- |
 | Avatar | [PNG](branding/avatar.png) | 1024 × 1024 |
+| Circular README avatar | [SVG](branding/avatar-round.svg) | 1024 × 1024, with transparent corners |
 | Upload-size avatar | [PNG](branding/avatar-150.png) | 150 × 150; under 1 MB |
 | YouTube banner | [PNG](branding/banner.png) | 2560 × 1440 |
 
