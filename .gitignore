@@ -1,0 +1,40 @@
+# Local projects, generated media and owner-only production records
+/output/
+/archive/
+/youtube_setup/
+/docs/superpowers/
+/MASTER_PROMPT_EN.md
+/VIDEO_ASSEMBLY.md
+/WHY_ARE_HUMANS_NEVER_SATISFIED*
+/automation/data/
+/automation/evidence/
+/automation/progress.md
+
+# Credentials and local machine files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.sqlite
+*.sqlite-*
+*.db
+.DS_Store
+
+# Environments, dependencies and build artifacts
+.venv*/
+venv/
+node_modules/
+dist/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+*.egg-info/
+*.tsbuildinfo
+*.log
+
+# Audio/video belongs in local project storage
+*.mp3
+*.wav
+*.mp4
+*.mov

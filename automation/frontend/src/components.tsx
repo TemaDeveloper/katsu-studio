@@ -1,0 +1,8 @@
+import {AlertCircle,Check,LoaderCircle} from 'lucide-react';
+import type {Project} from './types';
+import {statusName} from './api';
+
+export function ErrorNotice({message}:{message:string}){return <div className="notice error" role="alert"><AlertCircle size={20}/><span>{message}</span></div>}
+export function Loading(){return <p className="loading" role="status"><LoaderCircle size={20} className="spinner"/>Loading your studio…</p>}
+const stages=[['research','Research'],['writing','Narration'],['planning','Scene plan'],['images','Images'],['narration','Voice'],['timing','Timing'],['rendering','Export'],['thumbnail','Thumbnail']];
+export function Progress({project:p}:{project:Project}){let current=stages.findIndex(x=>x[0]===p.stage);if(p.status==='completed')current=stages.length;if(p.imported&&p.status==='completed')return <div className="production"><div className="production-heading"><strong>Existing episode imported</strong><span>Video, narration and 120 illustrations preserved</span></div></div>;return <div className="production"><div className="production-heading"><strong>{statusName(p.status)}</strong><span>{p.status==='completed'?'All stages complete':p.stage==='images'?`${p.completed_assets} / ${p.total_assets} illustrations`:stages[current]?.[1]??'Preparing'}</span></div><ol className="stage-list" aria-label="Production stages">{stages.map(([key,label],i)=><li key={key} className={i<current?'done':i===current?'current':''}><span className="stage-mark">{i<current?<Check size={15}/>:i+1}</span><span>{label}</span></li>)}</ol><p className="muted">Your completed work is saved as it goes. You can come back to this page.</p></div>}

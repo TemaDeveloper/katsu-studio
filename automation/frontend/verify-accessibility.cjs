@@ -1,0 +1,24 @@
+const {chromium}=require(process.env.KATSU_PLAYWRIGHT_PATH || 'playwright');
+const fs=require('node:fs');
+const path=require('node:path');
+(async()=>{
+ const browser=await chromium.launch({channel:'chrome',headless:true});
+ const page=await browser.newPage({viewport:{width:1360,height:960}});
+ const failures=[];
+ await page.goto('http://127.0.0.1:8850');
+ const topic=page.getByLabel('Your next video topic');await topic.focus();
+ const focus=await topic.evaluate(el=>getComputedStyle(el).outlineStyle);
+ if(focus==='none')failures.push('Home topic field hides keyboard focus');
+ const projects=await page.request.get('http://127.0.0.1:8850/api/projects').then(r=>r.json());
+ await page.goto('http://127.0.0.1:8850/projects/'+projects.find(p=>p.imported).id);
+ const videoTab=page.getByRole('tab',{name:'Video',exact:true});await videoTab.focus();await videoTab.press('ArrowRight');
+ if(await page.getByRole('tab',{name:'Narration',exact:true}).getAttribute('aria-selected')!=='true')failures.push('ArrowRight does not select the next tab');
+ await page.getByRole('link',{name:'New video',exact:true}).click();
+ const color=await page.getByLabel('Video topic',{exact:true}).evaluate(el=>getComputedStyle(el).borderTopColor);
+ const values=color.match(/\d+/g).map(Number);const lin=v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4};
+ const lum=.2126*lin(values[0])+.7152*lin(values[1])+.0722*lin(values[2]);
+ if(1.05/(lum+.05)<3)failures.push('Input boundary contrast is below 3:1');
+ fs.writeFileSync(path.resolve(__dirname,'../evidence/accessibility.json'),JSON.stringify({focus,borderColor:color,failures},null,2));
+ await browser.close();if(failures.length)throw new Error(failures.join('; '));
+ console.log('Accessibility regressions passed: topic focus, tabs keyboard selection, field border contrast.');
+})().catch(e=>{console.error(e.message);process.exit(1)});

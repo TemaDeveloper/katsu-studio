@@ -1,0 +1,36 @@
+const {chromium}=require(process.env.KATSU_PLAYWRIGHT_PATH || 'playwright');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+(async()=>{
+ const browser=await chromium.launch({headless:true,channel:'chrome'});
+ const page=await browser.newPage({viewport:{width:1360,height:960}});
+ const base='http://127.0.0.1:8850';
+ const topic='Browser refresh recovery test — missing credentials';
+ await page.goto(base+'/new');await page.getByLabel('Video topic',{exact:true}).fill(topic);
+ let firstId;
+ await page.route('**/api/projects',async route=>{if(route.request().method()==='POST'){const r=await route.fetch();firstId=(await r.json()).id;await route.abort('failed')}else await route.continue()});
+ await page.getByRole('button',{name:'Make my video',exact:false}).click();
+ await page.getByRole('alert').waitFor();
+ const pending=await page.evaluate(()=>sessionStorage.getItem('katsu.pending-project'));
+ assert(pending,'Uncertain submission must persist across refresh');
+ await page.unroute('**/api/projects');await page.reload();
+ assert.equal(await page.getByLabel('Video topic',{exact:true}).inputValue(),topic);
+ await page.getByRole('button',{name:'Make my video',exact:false}).click();await page.waitForURL('**/projects/*');
+ assert.equal(page.url().split('/').pop(),firstId);
+ const projects=await page.request.get(base+'/api/projects').then(r=>r.json());
+ assert.equal(projects.filter(p=>p.topic===topic).length,1);
+ assert.equal(await page.evaluate(()=>sessionStorage.getItem('katsu.pending-project')),null);
+ // Hold an old project poll across navigation. A stale response must not restore the old episode.
+ const imported=projects.find(p=>p.imported);
+ await page.goto(base+'/projects/'+imported.id);await page.getByRole('heading',{name:imported.title,level:1}).waitFor();
+ let release,held;const heldPromise=new Promise(r=>held=r);
+ await page.route('**/api/projects/'+imported.id,async route=>{await new Promise(r=>{release=r;held()});await route.continue()});
+ await heldPromise;
+ await page.goto(base+'/projects/'+firstId);await page.getByRole('heading',{name:topic,level:1}).waitFor();
+ release();await page.waitForTimeout(200);
+ assert.equal(await page.locator('main h1').textContent(),topic);
+ await browser.close();
+ fs.writeFileSync(path.resolve(__dirname,'../evidence/review-browser.json'),JSON.stringify({refreshIdempotency:true,stalePollGuard:true,project:firstId},null,2));
+ console.log('Review browser regressions passed: uncertain submission refresh recovery and stale poll exclusion.');
+})().catch(e=>{console.error(e);process.exit(1)});
