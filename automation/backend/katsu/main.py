@@ -96,6 +96,10 @@ def create_app(data_root: Path = AUTOMATION / 'data', worker_enabled=True, crede
             raise HTTPException(404, 'Avatar not found.')
         return FileResponse(path)
 
+    from .artwork_routes import attach_artwork_routes
+    attach_artwork_routes(app, store, keys)
+    from .topic_routes import attach_topic_routes
+    attach_topic_routes(app, store)
     from .routes import attach_routes
     attach_routes(app, store, keys)
     return app

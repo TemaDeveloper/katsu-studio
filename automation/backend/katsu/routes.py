@@ -2,6 +2,7 @@ import json
 import re
 from pathlib import Path
 from uuid import uuid4
+from functools import wraps
 from fastapi import HTTPException
 from fastapi.responses import FileResponse
 from .models import Scene, SceneEdit, Script
@@ -15,14 +16,24 @@ from .import_existing import import_existing
 
 
 def attach_routes(app, store, keys):
-    def idle(id):
+    def serialized(fn):
+        @wraps(fn)
+        def guarded(*args, **kwargs):
+            with store.lock:
+                return fn(*args, **kwargs)
+        return guarded
+
+    def idle(id, allow_edit=False):
         p = store.get_project(id)
-        if p.status == 'running' or (app.state.worker and app.state.worker.busy(id)):
+        if p.status in ('running', 'queued') or (app.state.worker and app.state.worker.busy(id)):
             raise ValueError('Wait for production to stop before editing or resuming.')
+        if p.artwork_edit and not allow_edit:
+            raise ValueError('Continue or discard the pending image edit first.')
         return p
 
-    def queue(id, thumbnail_only=False):
-        store.update_project(id, status='queued', error=None, cancel_requested=False, thumbnail_only=thumbnail_only)
+    def queue(id, thumbnail_only=False, render_only=False):
+        store.update_project(id, status='queued', error=None, cancel_requested=False,
+            thumbnail_only=thumbnail_only, render_only=render_only)
         if app.state.worker:
             app.state.worker.enqueue(id)
         return store.get_project(id)
@@ -65,6 +76,7 @@ def attach_routes(app, store, keys):
             return import_existing(store, WORKSPACE)
 
     @app.post('/api/projects/{id}/cancel')
+    @serialized
     def cancel(id: str):
         Pipeline(store, keys).cancel(id)
         if store.get_project(id).status == 'queued':
@@ -72,23 +84,26 @@ def attach_routes(app, store, keys):
         return store.get_project(id)
 
     @app.post('/api/projects/{id}/resume')
+    @serialized
     def resume(id: str, apply_settings: bool = False):
-        p = idle(id)
+        p = idle(id, allow_edit=True)
         if apply_settings:
             settings = thumbnail_settings(p) if p.thumbnail_only else store.settings()
             settings.target_seconds, settings.scene_count = p.settings.target_seconds, p.settings.scene_count
             store.update_project(id, settings=settings)
-        return queue(id, thumbnail_only=p.thumbnail_only)
+        return queue(id, thumbnail_only=p.thumbnail_only, render_only=p.render_only)
 
     @app.post('/api/projects/{id}/render')
+    @serialized
     def render(id: str):
         idle(id)
-        if 'scenes' not in store.get_project(id).artifacts:
-            raise ValueError('Create the script and images before exporting.')
-        store.remove_artifacts(id, ('video', 'verification', 'timeline'))
-        return queue(id)
+        from .artwork import saved_render_available
+        if not saved_render_available(store, id):
+            raise ValueError('Finish the images, recording and timing before exporting saved assets.')
+        return queue(id, render_only=True)
 
     @app.post('/api/projects/{id}/thumbnail')
+    @serialized
     def thumbnail(id: str, regenerate: bool = False):
         p = idle(id)
         if 'video' not in p.artifacts:
@@ -108,6 +123,7 @@ def attach_routes(app, store, keys):
             return []
 
     @app.patch('/api/projects/{id}/scenes/{scene_id}')
+    @serialized
     def edit(id: str, scene_id: int, value: SceneEdit):
         p = idle(id)
         rows = [Scene.model_validate(x) for x in scenes(id)]
@@ -134,10 +150,12 @@ def attach_routes(app, store, keys):
             target.prompt = value.visual
             store.remove_artifacts(id, [f'scene_{scene_id}', 'video', 'timeline', 'verification'])
         service.save(id, 'scenes', [r.model_dump() for r in rows], fingerprint([r.model_dump() for r in rows]), {'manual': True})
-        store.update_project(id, status='needs_attention', thumbnail_only=False, error='Changes saved. Continue production to update the video.')
+        store.update_project(id, status='needs_attention', thumbnail_only=False, render_only=False,
+            error='Changes saved. Continue production to update the video.')
         return rows
 
     @app.post('/api/projects/{id}/scenes/{scene_id}/regenerate')
+    @serialized
     def regenerate(id: str, scene_id: int):
         idle(id)
         if not any(x['id'] == scene_id for x in scenes(id)):
@@ -154,6 +172,7 @@ def attach_routes(app, store, keys):
         return queue(id)
 
     @app.post('/api/projects/{id}/package-images')
+    @serialized
     def package_images(id: str):
         idle(id)
         from .downloads import prepare_downloads
@@ -161,8 +180,9 @@ def attach_routes(app, store, keys):
         return store.get_project(id)
 
     @app.post('/api/projects/{id}/acknowledge-unknown')
+    @serialized
     def acknowledge(id: str):
-        idle(id)
+        idle(id, allow_edit=True)
         with store.lock:
             rows = store.db.execute("SELECT key FROM requests WHERE project_id=? AND state='unknown'", (id,)).fetchall()
             for row in rows:

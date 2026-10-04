@@ -100,6 +100,21 @@ class Artifact(Model):
     metadata: dict = Field(default_factory=dict)
 
 
+class ArtworkJob(Model):
+    kind: str
+    draft_id: str
+    base_fingerprint: str
+    instructions: str
+    request_key: str
+    image_model: str
+    image_quality: Literal['low', 'medium', 'high']
+    estimate: float
+    previous_status: Literal['needs_attention', 'cancelled', 'completed']
+    previous_stage: str
+    previous_error: str | None = None
+    previous_render_only: bool = False
+
+
 class Project(Model):
     id: str
     topic: str
@@ -119,6 +134,28 @@ class Project(Model):
     estimated_committed_usd: float = 0
     thumbnail_revision: str = Field(default='', max_length=100)
     thumbnail_only: bool = False
+    render_only: bool = False
+    artwork_edit: ArtworkJob | None = None
+
+
+class ArtworkEdit(Model):
+    instructions: str = Field(min_length=3, max_length=4000)
+    base_fingerprint: str = Field(min_length=1, max_length=128)
+
+    @field_validator('instructions')
+    @classmethod
+    def meaningful_change(cls, value):
+        if len(value.strip()) < 3:
+            raise ValueError('Describe the change in at least three characters.')
+        return value.strip()
+
+
+class ArtworkApply(Model):
+    draft_id: str = Field(min_length=1, max_length=128)
+
+
+class ArtworkRestore(Model):
+    fingerprint: str = Field(min_length=1, max_length=128)
 
 
 class SceneEdit(Model):

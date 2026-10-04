@@ -19,6 +19,8 @@ OpenAI research, writing and image APIs; ElevenLabs voice API; local FFmpeg asse
 ## Capabilities and Constraints
 Persistent projects, resumable work, image and narration edits, bounded estimated spending, cancellation, local MP4 export, and automatic thumbnail generation with separate regeneration. Thumbnails use original Katsu artwork and exact local lettering, exported as 3840 × 2160 JPEGs under 2 MB. No animated images or camera movement. No automatic publishing. Credentials remain on the backend in Keychain or environment variables. Paid APIs require separate accounts and billing.
 
+New video offers five source-linked public RSS article suggestions and five more on demand. Topic selection only fills an editable field. Scene images and complete thumbnails support current-image AI edits and owner uploads, preview before saving, and restoration of previous saved versions. Scene replacement rebuilds only from saved images, narration and timing; cover replacement changes only the thumbnail. Uploads and rebuilding have no provider cost.
+
 ## Brand Commitments
 Katsu The Printer name and approved illustrated avatar. Expressive white oversized head, black stick limbs and curl, bold slightly uneven black outlines, predominantly white with yellow and coral accents.
 

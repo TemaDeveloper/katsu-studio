@@ -36,6 +36,7 @@ class Store:
             CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, payload TEXT);
             CREATE TABLE IF NOT EXISTS requests (key TEXT PRIMARY KEY, project_id TEXT, estimate REAL, state TEXT, usage TEXT);
             CREATE TABLE IF NOT EXISTS artifact_versions (project_id TEXT, kind TEXT, fingerprint TEXT, payload TEXT, PRIMARY KEY(project_id,kind,fingerprint));
+            CREATE TABLE IF NOT EXISTS artwork_submissions (project_id TEXT, key TEXT, request_hash TEXT, payload TEXT, PRIMARY KEY(project_id,key));
         ''')
         self.db.commit()
 
@@ -109,14 +110,22 @@ class Store:
             raise ValueError('Artifact path is outside the project.')
         return target
 
-    def register_artifact(self, id, artifact):
-        if not self.contained(id, artifact.path).is_file():
-            raise ValueError('Artifact file is missing.')
+    def register_artifact(self, id, artifact, remove_kinds=(), **fields):
+        self.register_artifacts(id, [artifact], remove_kinds, **fields)
+
+    def register_artifacts(self, id, values, remove_kinds=(), **fields):
+        for artifact in values:
+            if not self.contained(id, artifact.path).is_file():
+                raise ValueError('Artifact file is missing.')
         with self.lock:
             artifacts = self.get_project(id).artifacts
-            artifacts[artifact.kind] = artifact
-            self.db.execute('INSERT OR REPLACE INTO artifact_versions VALUES (?,?,?,?)', (id, artifact.kind, artifact.fingerprint, artifact.model_dump_json()))
-            self.update_project(id, artifacts=artifacts)
+            for kind in remove_kinds:
+                artifacts.pop(kind, None)
+            for artifact in values:
+                artifacts[artifact.kind] = artifact
+                self.db.execute('INSERT OR REPLACE INTO artifact_versions VALUES (?,?,?,?)', (id, artifact.kind, artifact.fingerprint, artifact.model_dump_json()))
+            # Artifact references and the queued/completed state share one durable commit.
+            self.update_project(id, artifacts=artifacts, **fields)
 
     def find_artifact(self, id, kind, fingerprint):
         with self.lock:
@@ -128,6 +137,13 @@ class Store:
                 return None
             self.register_artifact(id, artifact)
             return self.artifact_path(id, kind)
+
+    def artifact_versions(self, id, kind):
+        self.get_project(id)
+        with self.lock:
+            rows = self.db.execute('SELECT payload FROM artifact_versions WHERE project_id=? AND kind=? ORDER BY rowid DESC', (id, kind)).fetchall()
+        artifacts = [Artifact.model_validate_json(row[0]) for row in rows]
+        return [a for a in artifacts if self.contained(id, a.path).is_file()]
 
     def remove_artifacts(self, id, kinds):
         kinds = list(kinds)

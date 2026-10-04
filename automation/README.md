@@ -21,6 +21,8 @@ ChatGPT subscriptions and OpenAI API billing are separate. ElevenLabs API reques
 
 Enter a question in **New video**, choose the length and illustration count, and click **Make my video**. Production proceeds automatically after setup. No routine script or sample-image approval stops. Follow the eight stages, or return later. The completed episode contains a video player, download, full narration, a gallery showing each image with its exact voiceover, a thumbnail preview and download, and research references.
 
+The topic field offers five free publisher headlines from ScienceDaily mind/brain, Smithsonian history/science, and NASA. Each links to its original article. **View more** adds up to five unseen ideas; **Use topic** fills the field for you to edit, without starting production. The public feeds are cached for 30 minutes; outages show an honest notice and any saved headlines. Articles are inspiration rather than verified script evidence: production still researches the chosen topic. No keys or paid requests are needed for suggestions.
+
 **Thumbnail** is the last stage. OpenAI chooses a truthful two-to-six-word headline from the finished story and creates reference-guided Katsu artwork. The app adds exact, readable lettering locally using the bundled, SIL Open Font License Fredoka font. It exports a 3840 × 2160 JPEG under 2 MB, matching [YouTube's current recommendations](https://support.google.com/youtube/answer/72431?hl=en). The output canvas is 4K; generated artwork is resized to fit it. Thumbnail planning and artwork use the same estimated spending limit and saved-response recovery as the video.
 
 Completed exports also offer script data, the timing report, and **Download images & scene wording** (a ZIP containing all registered illustrations plus matching `scenes.json`). Preparing that ZIP also makes a plain narration text download available.
@@ -33,6 +35,9 @@ The original episode now also has a **NEVER ENOUGH?** thumbnail. Its artwork was
 
 ## Changes and recovery
 
+- **Edit image** and **Edit thumbnail** offer an AI change or your own uploaded image. AI uses the current complete image as its reference; it creates a preview and counts one image estimate against the project limit. Uploads are free. Accept a static PNG, JPEG or WebP under 12 MB, at least 128 pixels per side and no larger than 40 megapixels.
+- Compare the current image with the preview, then choose **Use this image** or **Discard preview**. Saving a scene automatically rebuilds its video using saved narration, timing and other illustrations, with no new provider calls. The previous video stays downloadable until the replacement passes export verification. Saving a thumbnail updates only the cover, preserving the complete composition and lettering as a 3840 × 2160 JPEG under 2 MB.
+- Open **Previous versions** to restore an earlier saved image. Originals and later versions remain on disk. A restored scene rebuilds its export; a restored thumbnail leaves the video and recording unchanged. Browser retries retain an edit submission identity, and cancelled edits recover settled results without paying again.
 - Edit a scene's visual or request **New image** to replace that illustration and invalidate the export. The recording stays reusable.
 - Edit exact voiceover wording to invalidate narration, word timing, export and thumbnail. Other illustrations remain reusable. Owner edits are preserved when production continues.
 - **New thumbnail** regenerates its concept and artwork without researching, rewriting, recording or rendering the video again. Finished episodes without a thumbnail offer **Make thumbnail**. These actions use your current saved OpenAI models and spending limit.
@@ -55,6 +60,8 @@ Character alignment is preferred for exact timing. If a provider returns missing
 ## Development and verification
 
 Backend: `.venv/bin/python -m pip install -e './backend[test]'` then `.venv/bin/python -m pytest backend/tests -q` from `automation/`.
+
+Frontend: `npm test` checks edit submission recovery without provider calls; `npm run build` checks TypeScript and produces the browser app.
 
 Separate developer servers: `.venv/bin/python -m uvicorn katsu.main:create_app --factory --host 127.0.0.1 --port 8850` and `npm run dev` from `frontend/`. Production: `npm run build`, then run the backend to serve that build.
 

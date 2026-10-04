@@ -135,6 +135,22 @@ class OpenAIProvider:
         decode_image(response.data[0].b64_json, destination)
         return Artifact(kind=f'scene_{scene.id}', path=destination.name, fingerprint=fingerprint(scene.model_dump()), metadata=self.last_metadata)
 
+    def edit_image(self, instructions: str, current: Path, destination: Path):
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        prompt = ('Edit the supplied finished image. Apply only the requested change; preserve the existing '
+            'character identity, illustration style, composition, colors, objects and lettering unless explicitly '
+            'requested otherwise. Keep all unchanged content visible within the frame. Return one complete still '
+            'image, without adding borders, interface or watermarks. Requested change: ' + instructions)
+        with current.open('rb') as image:
+            response = self._call(self.client.images.edit, model=self.settings.image_model, image=image,
+                prompt=prompt, size='1536x1024', quality=self.settings.image_quality, n=1)
+        destination.with_suffix('.response.json').write_text(response.model_dump_json())
+        if not response.data or not response.data[0].b64_json:
+            raise ProviderError('Image editing returned no usable image. The response is saved for inspection.')
+        decode_image(response.data[0].b64_json, destination)
+        return Artifact(kind='edit', path=destination.name,
+            fingerprint=fingerprint([instructions, current.name]), metadata=self.last_metadata)
+
     def plan_thumbnail(self, script, style):
         response = self._call(self.client.responses.parse, model=self.settings.text_model, text_format=ThumbnailPlan,
             max_output_tokens=2500, input=[

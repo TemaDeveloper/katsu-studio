@@ -100,6 +100,22 @@ class Pipeline:
         root = s.project_dir(id)
         settings = p.settings
         try:
+            if p.render_only:
+                from .artwork import render_saved
+                render_saved(self, id)
+                return
+            if p.artwork_edit:
+                from .artwork import run_edit
+                job = p.artwork_edit
+                edit_settings = settings.model_copy(update={'image_model': job.image_model, 'image_quality': job.image_quality})
+                saved = self.budget.saved_result(id + ':artwork_edit_' + job.kind + ':' + job.request_key)
+                key = self.keys.get('openai') if self.keys else None
+                if not saved and not self.providers and not key:
+                    raise ValueError('Add your OpenAI API key in Settings, then continue the saved image edit.')
+                ai = self.providers[0] if self.providers else OpenAIProvider(key, edit_settings) if key else None
+                self._current_providers = (ai, None)
+                run_edit(self, id, ai)
+                return
             if self.providers:
                 ai, voice = self.providers
             else:

@@ -1,5 +1,19 @@
 # Verification — October 3, 2026
 
+## Topic suggestions and artwork editing
+
+The latest complete local suite passes **80 Python/video tests**. The frontend's **three edit-submission recovery tests** and production TypeScript/React build pass. GitHub's frontend check now runs those recovery tests as well as the build.
+
+Live public feed checks verified ScienceDaily mind/brain, Smithsonian history and science/nature, and NASA. The browser showed five suggestions from three publishers, then ten after **View more**; selecting a suggestion filled and focused the editable topic field without creating a project. Twenty-three topic regressions cover parsing, deduplication, varied publishers, caching/restart, partial and total outages, bounded fetches and pagination. A cache-refresh regression failed before exclusion-based pagination was added; **View more** now returns unseen ideas even after refresh.
+
+Eleven artwork regressions exercise real persistence and FFmpeg exports with only paid provider boundaries replaced. They cover upload previews, stale-draft protection, version restoration, preservation of complete thumbnail composition, exact JPEG dimensions/size, narration and other-image reuse, retained exports, paid edit idempotency, uncertain outcomes, cancellation recovery without keys, and replacing a stopped saved export with a normal production action. The actual OpenAI SDK also passes a synthetic HTTP multipart test proving that an edit sends the current composed image; a timeout makes exactly one request.
+
+Using the in-app browser, a temporary four-scene episode passed scene upload → preview → save → checked video rebuild → original-version restore, plus thumbnail upload → preview → save without a video rebuild. No artwork API requests were made. The fixture's files and database rows were archived outside the active app; only the original episode remains, with its complete project payload and request count unchanged.
+
+Desktop (1360 × 960) and mobile (390 × 844) topic and thumbnail-editor views have no horizontal overflow. Thumbnail previews decode and the inspected browser reports no console errors. Final screenshots and the cleanup record are local under `evidence/topics-final-*.jpg`, `editor-final-*.jpg`, `editor-preview-desktop.jpg` and `ui-test-record.json`; they are excluded from the public repository.
+
+Independent review found and verified fixes for paused-job mode conflicts, feed-refresh pagination, browser edit retry identity, settled-preview recovery without keys, and legacy actions replacing a stopped saved export. The final review reports no remaining critical or important findings. Paid edits against the owner's real OpenAI account, visual fidelity and actual billing remain unverified until a key is supplied; uploads and local exports are verified independently.
+
 ## Verified
 
 - Dedicated Python 3.12 environment: dependencies installed; `pip check` reports no broken requirements.

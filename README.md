@@ -49,6 +49,10 @@ The launcher installs the backend and builds the frontend on first use, then ope
 
 In **Settings**, save your OpenAI and ElevenLabs API keys privately, load your account's voices, choose a narrator, check connections, and set an estimated spending limit. Then enter a topic in **New video**. API billing is separate from ChatGPT subscriptions; model and voice access depend on your accounts. No credentials are included in this repository.
 
+Need an idea? **New video** shows five free article suggestions from ScienceDaily, Smithsonian Magazine and NASA, with source links and **View more** for another five. Choosing an idea fills the editable topic field without starting production.
+
+Use **Edit image** or **Edit thumbnail** to describe an AI change using the current image, or upload your own PNG, JPEG or WebP. Compare the preview before saving and restore previous versions. Scene replacements rebuild the video with the saved narration and word timing; thumbnail replacements update only the complete cover. Uploads and local rebuilding use no AI credits.
+
 ## What is included
 
 - `automation/backend/`: FastAPI routes, persisted job worker, provider adapters, request spending records, recovery, audio/timing, video verification and thumbnail generation.
@@ -73,6 +77,7 @@ automation/.venv/bin/python -m pip install -e 'automation/backend[test]'
 automation/.venv/bin/python -m pytest automation/backend/tests test_compose_video.py -q
 cd automation/frontend
 npm ci
+npm test
 npm run build
 ```
 
