@@ -28,7 +28,7 @@ def test_real_worker_to_download_and_missing_key_recovery(tmp_path):
     app = create_app(tmp_path, credentials=EmptyKeys(), providers=(FixtureOpenAI(), FixtureVoice()))
     app.state.store.save_settings(StudioSettings(voice_id='fixture', image_concurrency=1, remove_pauses=False))
     with TestClient(app) as c:
-        p = c.post('/api/projects', json={'topic': 'Synthetic end-to-end test', 'scene_count': 4}).json()
+        p = c.post('/api/projects', json={'topic': 'Synthetic end-to-end test', 'target_seconds': 60}).json()
         done = wait_done(c, p['id'])
         assert done['status'] == 'completed', done['error']
         video = c.get(f"/api/projects/{p['id']}/artifacts/video?download=true")

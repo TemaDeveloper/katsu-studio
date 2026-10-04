@@ -20,8 +20,8 @@ def test_artifact_paths_are_contained_even_with_symlinks(tmp_path):
 
 def test_projects_take_a_settings_snapshot_and_cannot_inject_keys(tmp_path):
     store = Store(tmp_path)
-    settings = StudioSettings()
+    settings = StudioSettings(voice_id='original')
     p = store.create_project(ProjectCreate(topic='A topic'), settings, 'one')
-    settings.scene_count = 4
-    assert store.get_project(p.id).settings.scene_count == 72
+    settings.voice_id = 'different'
+    assert store.get_project(p.id).settings.voice_id == 'original'
     assert 'secrets' not in store.get_project(p.id).model_dump()

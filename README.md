@@ -8,7 +8,7 @@
 
 A local **FastAPI + React** studio for Katsu The Printer. Enter a topic and the app automatically researches it, writes an English voiceover, plans scenes, generates original Katsu illustrations and timed narration, shortens pauses, matches images to spoken words, exports a checked 1080p video, and creates its thumbnail.
 
-The eight-minute default is a writing target. The actual recording determines the video length. Illustrations stay still with direct cuts. Thumbnail export is a 3840 × 2160 JPEG under 2 MB with exact lettering added locally.
+Choose the target length in minutes; the completed script determines how many illustrations are needed. The eight-minute default is a writing target. The actual recording determines the video length. Illustrations stay still with direct cuts. Thumbnail export is a 3840 × 2160 JPEG under 2 MB with exact lettering added locally.
 
 [**Katsu The Printer on YouTube →**](https://www.youtube.com/@KatsuThePrinter)
 

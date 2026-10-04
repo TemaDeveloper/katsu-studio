@@ -17,7 +17,8 @@ def test_creation_is_persisted_and_double_submit_is_idempotent(tmp_path):
     reopened = client(tmp_path)
     assert len(reopened.get('/api/projects').json()) == 1
     assert first.json()['settings']['target_seconds'] == 480
-    assert first.json()['settings']['scene_count'] == 72
+    assert first.json()['settings']['scene_count'] is None
+    assert first.json()['total_assets'] == 0
     assert c.post('/api/projects', json={'topic': 'Other topic'}, headers={'Idempotency-Key': 'same-click'}).status_code == 409
 
 

@@ -98,7 +98,8 @@ class Pipeline:
         s = self.store
         p = s.get_project(id)
         root = s.project_dir(id)
-        settings = p.settings
+        automatic_scenes = p.scene_planning == 'automatic'
+        settings = p.settings.model_copy(update={'scene_count': None}) if automatic_scenes else p.settings
         try:
             if p.render_only:
                 from .artwork import render_saved
@@ -146,7 +147,8 @@ class Pipeline:
                 path = self.save(id, 'sources', [v.model_dump() for v in sources], research_key, getattr(ai, 'last_metadata', {}))
             sources = [Source.model_validate(x) for x in json.loads(path.read_text())]
             self.checkpoint(id, 'writing')
-            script_key = fingerprint([research_key, [v.model_dump() for v in sources], settings.text_model, settings.target_seconds, settings.words_per_minute, settings.scene_count, 'script-v1'])
+            script_inputs = [research_key, [v.model_dump() for v in sources], settings.text_model, settings.target_seconds, settings.words_per_minute]
+            script_key = fingerprint(script_inputs + (['script-auto-v1'] if automatic_scenes else [settings.scene_count, 'script-v1']))
             path = self.valid(id, 'script', script_key)
             if not path:
                 s.remove_artifacts(id, ('video', 'timeline', 'verification'))
@@ -160,7 +162,7 @@ class Pipeline:
             if not reference.is_file():
                 raise ValueError('The saved Katsu character reference is missing.')
             style_hash = fingerprint([style, load('compose_video').digest(reference)])
-            scenes_key = fingerprint([script.model_dump(), style_hash, settings.scene_count, settings.text_model, 'scenes-v1'])
+            scenes_key = fingerprint([script.model_dump(), style_hash, settings.text_model, 'scenes-auto-v1'] if automatic_scenes else [script.model_dump(), style_hash, settings.scene_count, settings.text_model, 'scenes-v1'])
             path = self.valid(id, 'scenes', scenes_key)
             if not path:
                 s.remove_artifacts(id, ('video', 'timeline', 'verification'))

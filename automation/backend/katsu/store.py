@@ -60,19 +60,24 @@ class Store:
             self.db.commit()
 
     def create_project(self, request: ProjectCreate, settings: StudioSettings, idempotency_key: str):
-        request_hash = fingerprint(request.model_dump())
+        request_data = request.model_dump()
+        request_hash = fingerprint(request_data)
         with self.lock:
             row = self.db.execute('SELECT request_hash,payload FROM projects WHERE key=?', (idempotency_key,)).fetchone()
             if row:
-                if row[0] != request_hash:
+                saved = Project.model_validate_json(row[1])
+                # Before automatic planning, omitted counts defaulted to 72 in the hash.
+                legacy_retry = (saved.scene_planning == 'legacy' and request_data['scene_count'] is None
+                    and row[0] == fingerprint({**request_data, 'scene_count': 72}))
+                if row[0] != request_hash and not legacy_retry:
                     raise ValueError('This submission key was already used for a different topic.')
-                return Project.model_validate_json(row[1])
+                return saved
             snapshot = settings.model_copy(deep=True)
-            snapshot.target_seconds, snapshot.scene_count = request.target_seconds, request.scene_count
+            snapshot.target_seconds, snapshot.scene_count = request.target_seconds, None
             if request.budget_usd is not None:
                 snapshot.budget_usd = request.budget_usd
             project = Project(id=str(uuid4()), topic=request.topic, title=request.topic, settings=snapshot,
-                              total_assets=request.scene_count, created_at=now(), updated_at=now())
+                              scene_planning='automatic', created_at=now(), updated_at=now())
             self.project_dir(project.id).mkdir(parents=True)
             self.db.execute('INSERT INTO projects VALUES (?,?,?,?)', (project.id, idempotency_key, request_hash, project.model_dump_json()))
             self.db.commit()

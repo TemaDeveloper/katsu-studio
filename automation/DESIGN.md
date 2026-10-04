@@ -277,6 +277,8 @@ Inputs, textareas, and native selects use white backgrounds, charcoal text, the 
 
 The quick-topic container is a bordered 12px-rounded row with its action inside. Its input removes the resting inner border but restores a visible outline for keyboard focus. Secret-key entries use password inputs and a separate save action. Advanced spending and model options use native disclosure elements.
 
+New-video length and its settings default use a single labeled minutes field, no wider than 260px. There is no illustration-count control. Its hint explains that the completed script determines the images and exact wording pairs. Before the scene plan exists, project summaries say the count follows the script; once planned, they display the actual total.
+
 ### Navigation and episode tabs
 
 Main navigation combines line icons and text. Links use 14px body text, weight 650, 11px × 14px padding, and 7px corners. Active navigation uses the quiet-panel background and charcoal text; hover uses the nav-hover background. On mobile, all three links stay in a second header row with 12px text.

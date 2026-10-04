@@ -13,13 +13,15 @@ Prerequisites: Python 3.12, Node.js 22 and FFmpeg (`brew install python@3.12 nod
 1. Open **Settings**. Paste your OpenAI and ElevenLabs API keys into the private password fields and save each. Do not paste keys into chat.
 2. Click **Load voices**, select the narrator, and **Save preferences**. Hannibal's voice ID is selected from your actual account; it is never guessed.
 3. Check model names and **Check connections**. Defaults are configurable: `gpt-6-astra` for writing/research, `gpt-image-1.5` for reference-guided images, and `eleven_multilingual_v2` for narration. Access depends on your accounts. A connection check verifies credentials/listed resources; actual generation is a separate check.
-4. Set an estimated spending limit and review the price inputs under **Models, estimates, and timing**. Default figures are conservative planning inputs, not current billing quotes. For a first provider test, choose a one-minute topic and four illustrations.
+4. Set an estimated spending limit and review the price inputs under **Models, estimates, and timing**. Default figures are conservative planning inputs, not current billing quotes. For a first provider test, choose a one-minute topic; the finished script determines its illustrations.
 
 ChatGPT subscriptions and OpenAI API billing are separate. ElevenLabs API requests use its own account plan/credits. This app sends the topic, research context, narration, style and character reference to the relevant providers. Secrets remain in macOS Keychain, or server environment variables `OPENAI_API_KEY` and `ELEVENLABS_API_KEY`. They are never returned to the UI or saved in project exports. Environment variables take precedence over Keychain; replacing a Keychain value does not override an existing environment variable.
 
 ## Produce a video
 
-Enter a question in **New video**, choose the length and illustration count, and click **Make my video**. Production proceeds automatically after setup. No routine script or sample-image approval stops. Follow the eight stages, or return later. The completed episode contains a video player, download, full narration, a gallery showing each image with its exact voiceover, a thumbnail preview and download, and research references.
+Enter a question in **New video**, choose the target length in minutes, and click **Make my video**. Production proceeds automatically after setup. No routine script or sample-image approval stops. Follow the eight stages, or return later. The completed episode contains a video player, download, full narration, a gallery showing each image with its exact voiceover, a thumbnail preview and download, and research references.
+
+The narration is written first for your chosen duration. The scene planner then chooses how many illustrations the story needs, grouping related paragraphs and creating a new scene when the example, action or visual metaphor changes. Every image maps to an exact, consecutive passage of the script; word timing from the recording places its cut in the video. There is no illustration-count setting. Before planning finishes, the app shows that the count is pending; afterwards it shows the actual total. Production supports up to 120 illustrations per episode and respects the estimated spending limit before each request. Previously saved projects retain their original planning mode and reusable paid assets.
 
 The topic field offers five free publisher headlines from ScienceDaily mind/brain, Smithsonian history/science, and NASA. Each links to its original article. **View more** adds up to five unseen ideas; **Use topic** fills the field for you to edit, without starting production. The public feeds are cached for 30 minutes; outages show an honest notice and any saved headlines. Articles are inspiration rather than verified script evidence: production still researches the chosen topic. No keys or paid requests are needed for suggestions.
 
@@ -42,7 +44,7 @@ The original episode now also has a **NEVER ENOUGH?** thumbnail. Its artwork was
 - Edit exact voiceover wording to invalidate narration, word timing, export and thumbnail. Other illustrations remain reusable. Owner edits are preserved when production continues.
 - **New thumbnail** regenerates its concept and artwork without researching, rewriting, recording or rendering the video again. Finished episodes without a thumbnail offer **Make thumbnail**. These actions use your current saved OpenAI models and spending limit.
 - If thumbnail production stops, the completed video stays available. **Continue production** resumes only the thumbnail using current OpenAI preferences; successful requests remain reusable. A voice connection is unnecessary for this retry.
-- **Continue production** applies current saved provider/voice preferences and spending limit to that stopped project, keeping its original target duration and scene count. Relevant caches are checked against content, models, style and reference hashes.
+- **Continue production** applies current saved provider/voice preferences and spending limit to that stopped project, keeping its original target duration and scene-planning mode. Relevant caches are checked against content, models, style and reference hashes.
 - **Stop production** prevents new requests. Already running requests finish and their successful assets are retained. Stop is not a provider refund or immediate termination of local FFmpeg.
 - Restarting leaves interrupted projects in **Needs attention**. Resume reconciles persisted successful results and reuses matching saved versions, including versions from restored settings. Requests with uncertain outcomes are never replayed automatically. Inspect request records, saved responses in the project folder, and provider history/billing. Explicitly allow another paid attempt only if desired; the previous estimate remains counted.
 - A timeout or malformed paid response may require inspection. Known request rejection can be retried safely. The application uses zero automatic paid retries; user-triggered resume is bounded by persisted reservations and the project estimate limit.
@@ -61,7 +63,7 @@ Character alignment is preferred for exact timing. If a provider returns missing
 
 Backend: `.venv/bin/python -m pip install -e './backend[test]'` then `.venv/bin/python -m pytest backend/tests -q` from `automation/`.
 
-Frontend: `npm test` checks edit submission recovery without provider calls; `npm run build` checks TypeScript and produces the browser app.
+Frontend: `npm test` checks video creation and edit submission recovery without provider calls; `npm run build` checks TypeScript and produces the browser app.
 
 Separate developer servers: `.venv/bin/python -m uvicorn katsu.main:create_app --factory --host 127.0.0.1 --port 8850` and `npm run dev` from `frontend/`. Production: `npm run build`, then run the backend to serve that build.
 

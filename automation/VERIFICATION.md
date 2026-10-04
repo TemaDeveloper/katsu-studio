@@ -1,5 +1,15 @@
 # Verification — October 3, 2026
 
+## Automatic illustration planning
+
+Users now choose target minutes without an illustration-count control in New video or Settings. New projects start with no planned count. Writing follows the chosen duration and words-per-minute estimate; the scene planner chooses images from the completed canonical narration, grouping related paragraphs and covering every character exactly once. The resulting scene count is shown before image generation. An internal 120-scene limit stops excessive plans before any image purchase.
+
+The current complete local suite passes **88 Python/video tests**, including eight automatic-planning and upgrade regressions. **Six frontend submission-recovery tests** and the production React/TypeScript build pass. The actual OpenAI SDK parses synthetic writing/planning HTTP responses without a preset count; a real two-image FFmpeg fixture export uses the exact grouped narration and reuses saved paid results on repeat runs. Legacy scripts and scene fingerprints, old browser request bodies, omitted-count API retries, and historical re-import remain compatible. Independent review reports no unresolved findings after two upgrade fixes were reproduced as failing tests and corrected.
+
+In-app-browser checks at 1360×960 and 390×844 verify absent count controls, editable target minutes, Settings defaults, a pending count on project/list views, and no horizontal overflow or console errors. A UI-created three-minute fixture stored 180 seconds and an automatic pending count with zero provider requests. Its database row and files were archived outside active projects. The original episode's complete stored payload and request count remain unchanged. Screenshots and the cleanup/check record are under `evidence/auto-scenes-*` and are excluded from Git.
+
+No real OpenAI or ElevenLabs generation was run for this correction. Creative scene selection and actual generated length still need verification with the owner's configured accounts.
+
 ## Topic suggestions and artwork editing
 
 The latest complete local suite passes **80 Python/video tests**. The frontend's **three edit-submission recovery tests** and production TypeScript/React build pass. GitHub's frontend check now runs those recovery tests as well as the build.
@@ -37,7 +47,7 @@ Machine-readable evidence, full test results and screenshots are under `evidence
 
 No OpenAI or ElevenLabs credentials are configured in Studio. No paid Studio provider requests were run. Research, structured writing, reference-guided images, thumbnail concept/artwork, voice listing and speech-with-timestamps adapters exist and are tested at transport/fixture boundaries. Their behavior with this owner's real accounts, voices, models and billing is **unverified**. The first thumbnail was separately generated with Codex's built-in image tool; it does not prove the Studio API connection.
 
-To complete that verification, enter keys privately in Settings, load and save a voice, check connections, then create a one-minute/four-illustration project within the configured estimate limit. A model-list check alone does not prove image editing, speech generation or complete end-to-end production.
+To complete that verification, enter keys privately in Settings, load and save a voice, check connections, then create a one-minute project with illustrations planned from its script within the configured estimate limit. A model-list check alone does not prove image editing, speech generation or complete end-to-end production.
 
 The fully automatic orchestration and local video assembly are verified with synthetic provider fixtures. Production never falls back to those fixtures.
 

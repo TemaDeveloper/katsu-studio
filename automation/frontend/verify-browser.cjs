@@ -38,7 +38,7 @@ const assert = require('node:assert/strict');
  await page.screenshot({path:path.join(out,'settings-desktop.png'),fullPage:true});
  await page.getByRole('link',{name:'New video',exact:true}).click();
  await page.getByLabel('Video topic',{exact:true}).fill('Browser acceptance test — missing credentials');
- await page.getByLabel('Illustrations',{exact:true}).fill('4');
+ assert.equal(await page.getByLabel('Illustrations',{exact:true}).count(),0);
  await page.screenshot({path:path.join(out,'create-desktop.png'),fullPage:true});
  await page.getByRole('button',{name:'Make my video',exact:false}).click();
  await page.getByText('Let’s get this moving again.').waitFor();

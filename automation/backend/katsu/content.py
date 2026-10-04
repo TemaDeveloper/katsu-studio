@@ -2,6 +2,8 @@ import re
 from urllib.parse import urlparse
 from .models import Scene, Script
 
+MAX_SCENES = 120
+
 
 def validate_script(script, sources):
     if not sources or not script.narration.strip() or not script.title.strip():
@@ -36,6 +38,8 @@ def validate_scene_spans(script: Script, scenes: list[Scene]):
     cursor = 0
     if not scenes:
         raise ValueError('Scene planning returned no scenes.')
+    if len(scenes) > MAX_SCENES:
+        raise ValueError(f'Scene planning exceeded the {MAX_SCENES}-illustration production limit. Group related narration into fewer visual scenes.')
     for i, scene in enumerate(scenes, 1):
         if scene.id != i or scene.narration_start != cursor or scene.narration_end <= cursor:
             raise ValueError('Scenes must cover the narration in contiguous order.')

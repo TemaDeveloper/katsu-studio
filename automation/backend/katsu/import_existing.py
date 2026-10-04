@@ -12,6 +12,7 @@ def import_existing(store, workspace):
         raise ValueError('The completed example is not available in this workspace.')
     manifest = json.loads(manifest_path.read_text())
     key = 'existing:' + load('compose_video').digest(video)
+    # Keep the original submission body so a previously imported episode is idempotent.
     p = store.create_project(ProjectCreate(topic=manifest['title'], scene_count=120), StudioSettings(), key)
     if p.imported:
         return p
@@ -47,4 +48,6 @@ def import_existing(store, workspace):
         file = root / 'existing' / (kind+'.json')
         atomic_json(file, data)
         store.register_artifact(p.id, Artifact(kind=kind, path=str(file.relative_to(root)), fingerprint=fingerprint(data), metadata={'manual': True, 'historical': True}))
-    return store.update_project(p.id, imported=True, status='completed', stage='complete', completed_assets=120, actual_seconds=manifest.get('actual_audio_seconds', 568.273084), title=manifest['title'])
+    return store.update_project(p.id, imported=True, scene_planning='legacy', status='completed', stage='complete',
+        total_assets=len(scenes), completed_assets=len(scenes), settings=p.settings.model_copy(update={'scene_count': len(scenes)}),
+        actual_seconds=manifest.get('actual_audio_seconds', 568.273084), title=manifest['title'])

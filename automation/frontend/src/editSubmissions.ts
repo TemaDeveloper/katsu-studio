@@ -14,3 +14,24 @@ export function getEditSubmission(storage:SubmissionStorage,slot:string,body:str
 }
 
 export function clearEditSubmission(storage:SubmissionStorage,slot:string){storage.removeItem(slot)}
+
+type ProjectRequest={topic:string;target_seconds:number;budget_usd:number};
+
+export function readProjectSubmission(storage:SubmissionStorage,slot:string):EditSubmission|null{
+ const saved=readEditSubmission(storage,slot);
+ if(!saved)return null;
+ try{const data=JSON.parse(saved.body);return typeof data.topic==='string'&&Number.isFinite(data.target_seconds)?saved:null}catch{return null}
+}
+
+export function getProjectSubmission(storage:SubmissionStorage,slot:string,request:ProjectRequest):EditSubmission{
+ const previous=readProjectSubmission(storage,slot);
+ if(previous){
+  const data=JSON.parse(previous.body);
+  // An older browser may have already created a project before losing its response.
+  // Reuse that exact body and key, even if it included the retired count field.
+  if(data.topic===request.topic&&data.target_seconds===request.target_seconds&&data.budget_usd===request.budget_usd)return previous;
+ }
+ const value={key:crypto.randomUUID(),body:JSON.stringify(request)};
+ try{storage.setItem(slot,JSON.stringify(value))}catch{throw new Error('This browser could not save your video request. Enable browser storage before starting production.')}
+ return value;
+}

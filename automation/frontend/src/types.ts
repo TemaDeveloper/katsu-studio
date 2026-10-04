@@ -1,5 +1,5 @@
 export interface Settings {
-  target_seconds:number; scene_count:number; text_model:string; image_model:string; image_quality:'low'|'medium'|'high';
+  target_seconds:number; scene_count:number|null; text_model:string; image_model:string; image_quality:'low'|'medium'|'high';
   voice_id:string; voice_name:string; voice_model:string; voice_stability:number; voice_similarity:number; voice_speed:number;
   words_per_minute:number; remove_pauses:boolean; pause_threshold_db:number; minimum_pause_seconds:number; retained_pause_seconds:number;
   image_concurrency:number; image_estimate_usd:number; voice_per_1000_chars_usd:number; text_request_estimate_usd:number; budget_usd:number;

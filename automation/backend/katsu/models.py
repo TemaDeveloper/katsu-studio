@@ -9,7 +9,8 @@ class Model(BaseModel):
 
 class StudioSettings(Model):
     target_seconds: int = Field(default=480, ge=60, le=1800)
-    scene_count: int = Field(default=72, ge=4, le=120)
+    # Retained only to load preferences and project snapshots from earlier versions.
+    scene_count: int | None = Field(default=None, ge=4, le=120)
     text_model: str = Field(default='gpt-6-astra', min_length=1, max_length=100)
     image_model: str = Field(default='gpt-image-1.5', min_length=1, max_length=100)
     image_quality: Literal['low', 'medium', 'high'] = 'medium'
@@ -34,7 +35,8 @@ class StudioSettings(Model):
 class ProjectCreate(Model):
     topic: str = Field(min_length=3, max_length=300)
     target_seconds: int = Field(default=480, ge=60, le=1800)
-    scene_count: int = Field(default=72, ge=4, le=120)
+    scene_count: int | None = Field(default=None, ge=4, le=120, deprecated=True,
+        description='Compatibility for retries from older clients; ignored for new projects. Illustrations are planned from the completed script.')
     budget_usd: float | None = Field(default=None, gt=0, le=500)
 
     @field_validator('topic')
@@ -124,6 +126,8 @@ class Project(Model):
     stage: str = 'queued'
     completed_assets: int = 0
     total_assets: int = 0
+    # Missing on older rows: preserve their paid artifact fingerprints on resume.
+    scene_planning: Literal['automatic', 'legacy'] = 'legacy'
     actual_seconds: float | None = None
     created_at: str
     updated_at: str
